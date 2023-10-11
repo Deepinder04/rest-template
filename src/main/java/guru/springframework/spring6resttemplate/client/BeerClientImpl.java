@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static guru.springframework.spring6resttemplate.Utils.Constants.GET_BEER_BY_ID_PATH;
@@ -45,6 +47,16 @@ public class BeerClientImpl implements BeerClient {
     public BeerDTO getBeerById(UUID beerId) {
         RestTemplate restTemplate = restTemplateBuilder.build();
         return restTemplate.getForObject(GET_BEER_BY_ID_PATH,BeerDTO.class,beerId);
+    }
+
+    @Override
+    public BeerDTO saveBeer(BeerDTO beer) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        ResponseEntity<BeerDTO> response = restTemplate.postForEntity(GET_BEER_PATH, beer, BeerDTO.class);
+
+        String[] path = Objects.requireNonNull(response.getHeaders().get("Location")).get(0).split("/");
+        BeerDTO savedBeer = getBeerById(UUID.fromString(path[4]));
+        return savedBeer;
     }
 
     public static String buildGetBeerUrl(String beerName, BeerStyle beerStyle, Boolean showInventory, Integer pageNumber, Integer pageSize){
