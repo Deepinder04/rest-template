@@ -1,5 +1,6 @@
 package guru.springframework.spring6resttemplate.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateBuilderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -11,10 +12,13 @@ import static guru.springframework.spring6resttemplate.Utils.Constants.BASE_URL;
 @Configuration
 public class RestTemplateBuilderConfiguration {
 
+    @Value("${rest.template.rootUrl:http://localhost:8080}")
+    String baseURL;
+
     @Bean
     RestTemplateBuilder restTemplateBuilder(RestTemplateBuilderConfigurer configurer){
         RestTemplateBuilder restTemplateBuilder = configurer.configure(new RestTemplateBuilder());
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(BASE_URL);
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseURL);
 
         return restTemplateBuilder.uriTemplateHandler(factory);
     }
