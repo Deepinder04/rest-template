@@ -50,4 +50,14 @@ class BeerClientImplTest {
         assertNotNull(savedBeer);
     }
 
+    @Test
+    void testUpdateBeer(){
+        BeerDTO fetchedBeer = beerClient.listBeers().toList().get(0);
+        final String beerName = "updated beer";
+        fetchedBeer.setBeerName(beerName);
+        fetchedBeer.setQuantityOnHand(0);
+
+        BeerDTO updatedBeer = beerClient.updateBeer(fetchedBeer,fetchedBeer.getId());
+        assertEquals(beerName,updatedBeer.getBeerName());
+    }
 }

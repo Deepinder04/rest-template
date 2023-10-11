@@ -12,4 +12,5 @@ public interface BeerClient {
     Page<BeerDTO> listBeers(String beerName, BeerStyle beerStyle, Boolean showInventory, Integer pageNumber, Integer pageSize);
     BeerDTO getBeerById(UUID beerId);
     BeerDTO saveBeer(BeerDTO beer);
+    BeerDTO updateBeer(BeerDTO beer, UUID beerId);
 }
