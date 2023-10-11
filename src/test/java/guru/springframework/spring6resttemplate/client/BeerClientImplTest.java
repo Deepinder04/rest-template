@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
+
 @SpringBootTest
 class BeerClientImplTest {
 
@@ -19,6 +21,13 @@ class BeerClientImplTest {
     @Test
     void testListBeersNoName(){
         beerClient.listBeers(null, null, null, null, null);
+    }
+
+    @Test
+    void testGetBeerById(){
+        UUID beerId = beerClient.listBeers(null, null, null, null, null).get().findFirst().get().getId();
+
+        beerClient.getBeerById(beerId);
     }
 
 }
