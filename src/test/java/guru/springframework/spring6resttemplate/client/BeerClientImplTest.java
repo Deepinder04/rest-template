@@ -5,6 +5,8 @@ import guru.springframework.spring6resttemplate.model.BeerStyle;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.web.client.HttpClientErrorException;
 
 
 import java.math.BigDecimal;
@@ -59,5 +61,15 @@ class BeerClientImplTest {
 
         BeerDTO updatedBeer = beerClient.updateBeer(fetchedBeer,fetchedBeer.getId());
         assertEquals(beerName,updatedBeer.getBeerName());
+    }
+
+    @Test
+    void testDeleteById()  {
+        BeerDTO beer = beerClient.listBeers().toList().get(0);
+        beerClient.deleteById(beer.getId());
+
+        assertThrows(HttpClientErrorException.class, () -> {
+            beerClient.getBeerById(beer.getId());
+        });
     }
 }

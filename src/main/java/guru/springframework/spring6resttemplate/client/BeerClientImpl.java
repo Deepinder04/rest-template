@@ -6,13 +6,11 @@ import guru.springframework.spring6resttemplate.model.BeerStyle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -65,6 +63,12 @@ public class BeerClientImpl implements BeerClient {
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.put(GET_BEER_BY_ID_PATH,beer,beerId);
         return getBeerById(beerId);
+    }
+
+    @Override
+    public void deleteById(UUID beerId) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        restTemplate.delete(GET_BEER_BY_ID_PATH,beerId);
     }
 
     public static String buildGetBeerUrl(String beerName, BeerStyle beerStyle, Boolean showInventory, Integer pageNumber, Integer pageSize){
