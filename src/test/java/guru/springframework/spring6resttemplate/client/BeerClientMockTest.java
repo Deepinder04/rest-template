@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.web.client.MockServerRestTemplateCustomizer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -22,13 +23,14 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.UUID;
 
+import static guru.springframework.spring6resttemplate.Utils.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 
@@ -58,11 +60,24 @@ public class BeerClientMockTest {
     }
 
     @Test
+    void testGetBeerById() throws JsonProcessingException, ChangeSetPersister.NotFoundException {
+        BeerDTO beer = getBeerDto();
+        String payload = objectMapper.writeValueAsString(beer);
+
+        server.expect(method(HttpMethod.GET))
+                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
+                .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
+
+        BeerDTO returnedBeer = beerClient.getBeerById(beer.getId());
+        assertThat(returnedBeer.getId()).isEqualTo(beer.getId());
+    }
+
+    @Test
     void testListBeers() throws JsonProcessingException {
         String payload = objectMapper.writeValueAsString(getPage());
 
         server.expect(method(HttpMethod.GET))
-                .andExpect(requestTo(Constants.BASE_URL + Constants.GET_BEER_PATH))
+                .andExpect(requestTo(BASE_URL + Constants.GET_BEER_PATH))
                 .andRespond(withSuccess(payload, MediaType.APPLICATION_JSON));
 
         Page<BeerDTO> dtos = beerClient.listBeers();
