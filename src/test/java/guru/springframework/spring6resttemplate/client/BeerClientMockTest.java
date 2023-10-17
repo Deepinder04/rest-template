@@ -20,20 +20,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static guru.springframework.spring6resttemplate.Utils.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withCreatedEntity;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 
 @RestClientTest
@@ -62,8 +64,69 @@ public class BeerClientMockTest {
         server = MockRestServiceServer.bindTo(restTemplate).build();
         when(mockRestTemplateBuilder.build()).thenReturn(restTemplate);
         beerClient = new BeerClientImpl(mockRestTemplateBuilder);
-        BeerDTO beer = getBeerDto();
-        String payload = objectMapper.writeValueAsString(beer);
+        beer = getBeerDto();
+        payload = objectMapper.writeValueAsString(beer);
+    }
+
+    @Test // TODO : find how to use this for a query param with space in the value
+    void testListBeerWithQueryParams() throws JsonProcessingException {
+        payload = objectMapper.writeValueAsString(getPage());
+
+        URI url = UriComponentsBuilder.fromHttpUrl(BASE_URL + GET_BEER_PATH)
+                .queryParam("beerName","mango")
+                .build().toUri();
+
+        server.expect(method(HttpMethod.GET))
+                .andExpect(requestTo(url))
+                .andExpect(queryParam("beerName","mango"))
+                .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
+
+        Page<BeerDTO> beerList = beerClient.listBeers("mango",null,null,null,null);
+
+        assertThat(beerList.getContent().size()).isGreaterThan(0);
+        server.verify();
+    }
+
+    @Test
+    void testDeleteIdNotFound(){
+        server.expect(method(HttpMethod.DELETE))
+                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
+                .andRespond(withResourceNotFound());
+
+        assertThrows(HttpClientErrorException.NotFound.class, () -> {
+            beerClient.deleteById(beer.getId());
+        });
+
+        server.verify();
+    }
+
+    @Test
+    void testDeleteBeer(){
+        server.expect(method(HttpMethod.DELETE))
+                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
+                .andRespond(withNoContent());
+
+        beerClient.deleteById(beer.getId());
+
+        server.verify();
+    }
+
+    @Test
+    void testUpdateBeer() throws ChangeSetPersister.NotFoundException {
+        server.expect(method(HttpMethod.PUT))
+                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
+                .andRespond(withNoContent());
+
+        mockGetOperation();
+
+        BeerDTO updatedBeer = beerClient.updateBeer(beer,beer.getId());
+        assertThat(updatedBeer.getId()).isEqualTo(beer.getId());
+    }
+
+    private void mockGetOperation() {
+        server.expect(method(HttpMethod.GET))
+                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
+                .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -75,9 +138,7 @@ public class BeerClientMockTest {
                 .andExpect(requestToUriTemplate(BASE_URL+GET_BEER_PATH))
                 .andRespond(withCreatedEntity(location));
 
-        server.expect(method(HttpMethod.GET))
-                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
-                .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
+        mockGetOperation();
 
         BeerDTO savedBeer = beerClient.saveBeer(beer);
         assertThat(savedBeer.getBeerName()).isEqualTo(beer.getBeerName());
@@ -85,9 +146,7 @@ public class BeerClientMockTest {
 
     @Test
     void testGetBeerById() throws JsonProcessingException, ChangeSetPersister.NotFoundException {
-        server.expect(method(HttpMethod.GET))
-                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
-                .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
+        mockGetOperation();
 
         BeerDTO returnedBeer = beerClient.getBeerById(beer.getId());
         assertThat(returnedBeer.getId()).isEqualTo(beer.getId());
@@ -95,6 +154,8 @@ public class BeerClientMockTest {
 
     @Test
     void testListBeers() throws JsonProcessingException {
+        payload = objectMapper.writeValueAsString(getPage());
+
         server.expect(method(HttpMethod.GET))
                 .andExpect(requestTo(BASE_URL + Constants.GET_BEER_PATH))
                 .andRespond(withSuccess(payload, MediaType.APPLICATION_JSON));
