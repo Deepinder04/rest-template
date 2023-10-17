@@ -53,18 +53,21 @@ public class BeerClientMockTest {
     @Mock
     RestTemplateBuilder mockRestTemplateBuilder = new RestTemplateBuilder(new MockServerRestTemplateCustomizer());
 
+    BeerDTO beer;
+    String payload;
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws JsonProcessingException {
         RestTemplate restTemplate = restTemplateBuilderConfigured.build();
         server = MockRestServiceServer.bindTo(restTemplate).build();
         when(mockRestTemplateBuilder.build()).thenReturn(restTemplate);
         beerClient = new BeerClientImpl(mockRestTemplateBuilder);
+        BeerDTO beer = getBeerDto();
+        String payload = objectMapper.writeValueAsString(beer);
     }
 
     @Test
     void testCreateBeer() throws JsonProcessingException, ChangeSetPersister.NotFoundException {
-        BeerDTO beer = getBeerDto();
-        String payload = objectMapper.writeValueAsString(beer);
         URI location = UriComponentsBuilder.fromPath(GET_BEER_BY_ID_PATH)
                 .build(beer.getId());
 
@@ -82,9 +85,6 @@ public class BeerClientMockTest {
 
     @Test
     void testGetBeerById() throws JsonProcessingException, ChangeSetPersister.NotFoundException {
-        BeerDTO beer = getBeerDto();
-        String payload = objectMapper.writeValueAsString(beer);
-
         server.expect(method(HttpMethod.GET))
                 .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
                 .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
@@ -95,8 +95,6 @@ public class BeerClientMockTest {
 
     @Test
     void testListBeers() throws JsonProcessingException {
-        String payload = objectMapper.writeValueAsString(getPage());
-
         server.expect(method(HttpMethod.GET))
                 .andExpect(requestTo(BASE_URL + Constants.GET_BEER_PATH))
                 .andRespond(withSuccess(payload, MediaType.APPLICATION_JSON));
