@@ -21,6 +21,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -31,6 +32,7 @@ import static guru.springframework.spring6resttemplate.Utils.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withCreatedEntity;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 
@@ -57,6 +59,25 @@ public class BeerClientMockTest {
         server = MockRestServiceServer.bindTo(restTemplate).build();
         when(mockRestTemplateBuilder.build()).thenReturn(restTemplate);
         beerClient = new BeerClientImpl(mockRestTemplateBuilder);
+    }
+
+    @Test
+    void testCreateBeer() throws JsonProcessingException, ChangeSetPersister.NotFoundException {
+        BeerDTO beer = getBeerDto();
+        String payload = objectMapper.writeValueAsString(beer);
+        URI location = UriComponentsBuilder.fromPath(GET_BEER_BY_ID_PATH)
+                .build(beer.getId());
+
+        server.expect(method(HttpMethod.POST))
+                .andExpect(requestToUriTemplate(BASE_URL+GET_BEER_PATH))
+                .andRespond(withCreatedEntity(location));
+
+        server.expect(method(HttpMethod.GET))
+                .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
+                .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
+
+        BeerDTO savedBeer = beerClient.saveBeer(beer);
+        assertThat(savedBeer.getBeerName()).isEqualTo(beer.getBeerName());
     }
 
     @Test
