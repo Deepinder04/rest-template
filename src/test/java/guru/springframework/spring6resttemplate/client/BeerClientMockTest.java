@@ -78,6 +78,7 @@ public class BeerClientMockTest {
                 .build().toUri();
 
         server.expect(method(HttpMethod.GET))
+                .andExpect(header(AUTHORIZATION_HEADER,BASIC_AUTH))
                 .andExpect(requestTo(url))
                 .andExpect(queryParam("beerName","mango"))
                 .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
@@ -91,6 +92,7 @@ public class BeerClientMockTest {
     @Test
     void testDeleteIdNotFound(){
         server.expect(method(HttpMethod.DELETE))
+                .andExpect(header(AUTHORIZATION_HEADER,BASIC_AUTH))
                 .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
                 .andRespond(withResourceNotFound());
 
@@ -104,6 +106,7 @@ public class BeerClientMockTest {
     @Test
     void testDeleteBeer(){
         server.expect(method(HttpMethod.DELETE))
+                .andExpect(header(AUTHORIZATION_HEADER,BASIC_AUTH))
                 .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
                 .andRespond(withNoContent());
 
@@ -115,6 +118,7 @@ public class BeerClientMockTest {
     @Test
     void testUpdateBeer() throws ChangeSetPersister.NotFoundException {
         server.expect(method(HttpMethod.PUT))
+                .andExpect(header(AUTHORIZATION_HEADER,BASIC_AUTH))
                 .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
                 .andRespond(withNoContent());
 
@@ -126,6 +130,7 @@ public class BeerClientMockTest {
 
     private void mockGetOperation() {
         server.expect(method(HttpMethod.GET))
+                .andExpect(header(AUTHORIZATION_HEADER,BASIC_AUTH))
                 .andExpect(requestToUriTemplate(BASE_URL + GET_BEER_BY_ID_PATH, beer.getId()))
                 .andRespond(withSuccess(payload,MediaType.APPLICATION_JSON));
     }
@@ -136,6 +141,7 @@ public class BeerClientMockTest {
                 .build(beer.getId());
 
         server.expect(method(HttpMethod.POST))
+                .andExpect(header(AUTHORIZATION_HEADER,BASIC_AUTH))
                 .andExpect(requestToUriTemplate(BASE_URL+GET_BEER_PATH))
                 .andRespond(withCreatedEntity(location));
 
@@ -158,6 +164,7 @@ public class BeerClientMockTest {
         payload = objectMapper.writeValueAsString(getPage());
 
         server.expect(method(HttpMethod.GET))
+                .andExpect(header(AUTHORIZATION_HEADER,BASIC_AUTH))
                 .andExpect(requestTo(BASE_URL + Constants.GET_BEER_PATH))
                 .andRespond(withSuccess(payload, MediaType.APPLICATION_JSON));
 

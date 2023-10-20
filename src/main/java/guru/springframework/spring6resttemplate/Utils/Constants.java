@@ -4,4 +4,6 @@ public class Constants {
     public static final String BASE_URL = "http://localhost:8080";
     public static final String GET_BEER_PATH = "/api/v1/beer";
     public static final String GET_BEER_BY_ID_PATH = "/api/v1/beer/{beerId}";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String BASIC_AUTH = "Basic dXNlcjpwYXNzd29yZA==";
 }
