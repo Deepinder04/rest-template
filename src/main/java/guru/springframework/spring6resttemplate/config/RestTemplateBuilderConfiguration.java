@@ -15,17 +15,10 @@ public class RestTemplateBuilderConfiguration {
     @Value("${rest.template.rootUrl:http://localhost:8080}")
     String baseURL;
 
-    @Value("${rest.template.username}")
-    String username;
-
-    @Value("${rest.template.password}")
-    String password;
-
     @Bean
     RestTemplateBuilder restTemplateBuilder(RestTemplateBuilderConfigurer configurer){
 
         return configurer.configure(new RestTemplateBuilder())
-                .basicAuthentication(username,password)
                 .uriTemplateHandler(new DefaultUriBuilderFactory(baseURL));
     }
 
