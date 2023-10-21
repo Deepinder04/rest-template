@@ -18,16 +18,9 @@ public class RestTemplateBuilderConfiguration {
     @Value("${rest.template.rootUrl:http://localhost:8080}")
     String baseURL;
 
-    private final ClientRegistrationRepository clientRegistrationRepository;
-    private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
-
-    public RestTemplateBuilderConfiguration(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
-        this.clientRegistrationRepository = clientRegistrationRepository;
-        this.oAuth2AuthorizedClientService = oAuth2AuthorizedClientService;
-    }
-
     @Bean
-    OAuth2AuthorizedClientManager auth2AuthorizedClientManager(){
+    OAuth2AuthorizedClientManager auth2AuthorizedClientManager(ClientRegistrationRepository clientRegistrationRepository,
+                                                               OAuth2AuthorizedClientService oAuth2AuthorizedClientService ){
         var authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder.builder()
                 .clientCredentials()
                 .build();
@@ -39,8 +32,9 @@ public class RestTemplateBuilderConfiguration {
     }
 
     @Bean
-    RestTemplateBuilder restTemplateBuilder(RestTemplateBuilderConfigurer configurer){
+    RestTemplateBuilder restTemplateBuilder(RestTemplateBuilderConfigurer configurer, OAuthClientInterceptor interceptor){
         return configurer.configure(new RestTemplateBuilder())
+                .additionalInterceptors(interceptor)
                 .uriTemplateHandler(new DefaultUriBuilderFactory(baseURL));
     }
 
